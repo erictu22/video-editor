@@ -2,10 +2,16 @@ import os
 import json
 import twitchdl
 import pprint
+# TODO: Delete irrelevant videos from /videos
 
 def extract_videos(channel_names):
-    video_list_str = os.popen("twitch-dl videos -j Lourlo").read()
-    video_list = json.loads(video_list_str)
-    pprint.pprint(video_list)
+    for channel in channel_names:
+        video_list_str = os.popen(f'twitch-dl videos -j {channel}').read()
+        video_list = json.loads(video_list_str)
+        pprint.pprint(video_list)
 
 extract_videos()
+
+
+
+
