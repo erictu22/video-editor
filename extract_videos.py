@@ -3,11 +3,13 @@ import json
 import twitchdl
 from pprint import pprint
 from datetime import datetime
+import subprocess
 
-# TODO: Delete irrelevant videos from /videos  
+# TODO: Delete irrelevant videos from /videos
+# To-add: Lourlo
 VIDEO_AGE_THRESHOLD = 1 #weeks
 TOP_LANE_STREAMERS = ['Sanchovies' ,'yung_fappy','Dragoon','Lourlo','Thebausffs','Bwipolol','foggedftw2','SoloRenektonOnly']
-
+TEST_STREAMERS = ['yung_fappy']
 def is_video_relevant(video):
     date = datetime.strptime(video['publishedAt'], '%Y-%m-%dT%H:%M:%SZ')
     video_age = datetime.now() - date
@@ -24,24 +26,29 @@ def get_relevant_videos(channel_names):
 
 def get_local_videos():
     videos = []
-    for video_id in os.listdir('videos'):
-        # TODO: Maybe check if video_id is valid
+    for file_name in os.listdir('videos'):
+
+        skip_values = ['.DS_Store']
+        if file_name in skip_values:
+            continue
+
+        video_id = file_name.split('.')[0]
+
         p = os.popen((f'twitch-dl info -j {video_id}'))
-        video = json.load(p.read())
+
+        video = json.loads(p.read())
         videos.append(video)
-    print(videos)
     return videos
 
 def download_videos(videos):
     video_ids = [video['id'] for video in videos]
     id_str = ' '.join(video_ids)
-    p = os.popen(f'cd videos && twitch-dl download -q 160p30 {id_str}')
-    p.read()
+    p = subprocess.Popen(f'cd videos && twitch-dl download -q source -f mp4 -o {"{id}.mp4"} {id_str}'.split(), stdout=subprocess.PIPE)
 
 # TODO: Save video metadata
 
 def get_diff():
-    relevant_videos = get_relevant_videos(['Lourlo'])
+    relevant_videos = get_relevant_videos(TEST_STREAMERS)
     local_videos = get_local_videos()
     local_video_ids = [video['id'] for video in local_videos]
     videos_to_delete = [video for video in local_videos if not is_video_relevant(video)]
@@ -49,4 +56,5 @@ def get_diff():
     return videos_to_delete, videos_to_download
 
 delete, download = get_diff()
-download_videos(download)
+print(download)
+# download_videos(download)
