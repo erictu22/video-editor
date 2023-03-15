@@ -13,17 +13,11 @@ def cut_video(video_id):
     while(cap.isOpened()):
         frame_exists, curr_frame = cap.read()
         if frame_exists:
-            if frame_no % 120 == 0:
+            if frame_no % 1000 == 0:
                 cv2.imshow('frame', curr_frame)
                 cv2.waitKey(1)
-                is_matching = False
-                for img in samples:
-                    if is_match(img, curr_frame):
-                        is_matching = True
-                if is_matching:
-                    print('Images are similar')
-                else:
-                    print('No match')
+                score = max([similarity(img, curr_frame) for img in samples])
+                print(score)
         else:
             break
         frame_no += 1
@@ -63,7 +57,7 @@ def is_in_game(frame):
     
     score = numpy.array([row[x_start:x_end] for row in frame[y_start:y_end]])
 
-def is_match(image1, image2):
+def similarity(image1, image2):
     # Convert the images to grayscale
     gray_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
     gray_image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
@@ -74,6 +68,6 @@ def is_match(image1, image2):
     # Compute the SSIM between the two images
     (score,diff) = structural_similarity(resized_image1, resized_image2, full=True)
 
-    return score > 0.4
+    return score
 
-cut_video(1760630552)
+cut_video(1762866433)

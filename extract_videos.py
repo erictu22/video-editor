@@ -8,9 +8,9 @@ import sys
 
 # TODO: Delete irrelevant videos from /videos
 # To-add: Lourlo
-VIDEO_AGE_THRESHOLD = 1 # days
+VIDEO_AGE_THRESHOLD = 5 # days
 TOP_LANE_STREAMERS = ['Sanchovies' ,'yung_fappy','Dragoon','Lourlo','Thebausffs','Bwipolol','foggedftw2','SoloRenektonOnly']
-TEST_STREAMERS = ['yung_fappy']
+TEST_STREAMERS = ['Bwipolol']
 def is_video_relevant(video):
     date = datetime.strptime(video['publishedAt'], '%Y-%m-%dT%H:%M:%SZ')
     video_age = datetime.now() - date
@@ -34,6 +34,7 @@ def get_local_videos():
 
         video_id = file_name.split('.')[0]
 
+        # TODO: Handle case where video is not found
         p = os.popen((f'twitch-dl info -j {video_id}'))
 
         video = json.loads(p.read())
