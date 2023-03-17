@@ -3,18 +3,30 @@ from math import *
 import numpy
 from skimage.metrics import structural_similarity
 from time import sleep
+import moviepy.editor as me
+import os
+samples = [cv2.imread(f'image-data/{x}') for x in os.listdir('image-data')]
 
-samples = [cv2.imread(f'image-data/{x}.png') for x in ['lane','shop', 'tab', 'spawn']]
-
-SAMPLE_INTERVALS = 30 # seconds
-START_PERIOD = 5
+SAMPLE_INTERVALS = 45 # seconds
+START_PERIOD = 3
 END_PERIOD = 6
+
+def cut_video(video_id):
+    cuts = get_cuts(video_id)
+    video = me.VideoFileClip(f'videos/{video_id}.mp4')
+
+    for cut in cuts:
+        clip = video.subclip(cut[0], cut[1])
+
+        m, s = divmod(cut[0], 60)
+        h, m = divmod(m, 60)
+        clip.write_videofile(f'cuts/{video_id}_{h}h{m}m{s}s.mp4', temp_audiofile="temp-audio.m4a", remove_temp=True, codec="libx264", audio_codec="aac")
 
 def get_cuts(video_id, start=0):
     data = play_video(video_id=video_id, start=start, should_record_data=True, should_display=False)
     
     scores = [datum[1] for datum in data]
-    frame_nums = [datum[0] for datum in data]
+    timestamps = [datum[0] for datum in data]
     first_q = numpy.percentile(scores, 25)
     third_q = numpy.percentile(scores, 75)
     thresh = (third_q - first_q) / 2 + first_q
@@ -25,9 +37,9 @@ def get_cuts(video_id, start=0):
     stop = -1
     for i in range(0, len(is_ingame_checks) - END_PERIOD):
         if start == -1 and all(is_ingame for is_ingame in is_ingame_checks[i: i + START_PERIOD]):
-            start = frame_nums[i]
+            start = timestamps[i]
         elif start != -1 and stop == -1 and all(not is_ingame for is_ingame in is_ingame_checks[i: i + END_PERIOD]):
-            stop = frame_nums[i]
+            stop = timestamps[i + 1]
             cuts.append((start, stop))
             start = -1
             stop = -1
@@ -65,7 +77,7 @@ def play_video(video_id, start, should_record_data=False, should_display=True):
                     cv2.waitKey(1)
                 if should_record_data:
                     score = max([similarity(img, curr_frame) for img in samples])
-                    data.append((frame_no, score))
+                    data.append((int(frame_no / video_fps), score))
                 print(f'id:{video_id} Progress:{round(frame_no / total_frames * 100, 2)}%', end='\r')
         else:
             break
@@ -73,6 +85,5 @@ def play_video(video_id, start, should_record_data=False, should_display=True):
     cap.release()
     return data
 
-
 videos = [1762866433, 1760630552]
-play_video(1760630552, 216000)
+cut_video(1762866433)

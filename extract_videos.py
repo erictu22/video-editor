@@ -1,6 +1,6 @@
 import os
 import json
-import twitchdl
+from twitchdl import twitch
 from pprint import pprint
 from datetime import datetime
 import subprocess
@@ -50,9 +50,11 @@ def download_videos(videos):
     id_str = ' '.join(video_ids)
     print(f'Downloading {id_str}')
     cmd = f'twitch-dl download -q source -f mp4 -o videos/{"{id}.mp4"} {id_str}'
+
+    # This is to print out the progress
     with subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, text=True, bufsize=1) as p:
         for line in p.stdout:
-            print('\r' + str(line).replace('\n',''), end='')
+            print('\r' + str(line).replace('\n',''), end='\r')
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
@@ -72,3 +74,4 @@ def get_diff():
 delete, download = get_diff()
 download_videos(download)
 print('Done')
+
