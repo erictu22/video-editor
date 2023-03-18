@@ -1,29 +1,28 @@
 import os
 import json
-from twitchdl import twitch
+import twitchdl.commands.download as download
 from pprint import pprint
 from datetime import datetime
 import subprocess
 import sys
 
-# TODO: Delete irrelevant videos from /videos
-# To-add: Lourlo
-VIDEO_AGE_THRESHOLD = 5 # days
-TOP_LANE_STREAMERS = ['Sanchovies' ,'yung_fappy','Dragoon','Lourlo','Thebausffs','Bwipolol','foggedftw2','SoloRenektonOnly']
-TEST_STREAMERS = ['Bwipolol']
-def is_video_relevant(video):
+
+def is_video_relevant(video, thresh):
     date = datetime.strptime(video['publishedAt'], '%Y-%m-%dT%H:%M:%SZ')
     video_age = datetime.now() - date
-    return video_age.days < VIDEO_AGE_THRESHOLD
+    return video_age.days < thresh
 
-def get_relevant_videos(channel_names):
+
+def get_relevant_videos(channel_names, thresh, max_per_channel=5):
     output = []
     for channel in channel_names:
         video_list_str = os.popen(f'twitch-dl videos -j {channel}').read()
         video_list = json.loads(video_list_str)['videos']
-        relevant_videos = [x for x in video_list if is_video_relevant(x)]
+        relevant_videos = [x for x in video_list if is_video_relevant(
+            x, thresh)][0:max_per_channel]
         output.extend(relevant_videos)
     return output
+
 
 def get_local_videos():
     videos = []
@@ -41,37 +40,41 @@ def get_local_videos():
         videos.append(video)
     return videos
 
+
+class DotDict(dict):
+    """dot.notation access to dictionary attributes"""
+
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+def download_video(video_id):
+    download_args = DotDict(
+        {
+            "videos": [str(video_id)],
+            "format": "mp4",
+            "keep": False,
+            "quality": "source",
+            "max_workers": 20,
+            "no_join": False,
+            "overwrite": True,
+            "start": None,
+            "end": None,
+            "output": "videos/{id}.{format}",
+        }
+    )
+    download(download_args)
+
+
 def download_videos(videos):
     if len(videos) == 0:
         print('No relevant videos to download')
         return
 
     video_ids = [video['id'] for video in videos]
-    id_str = ' '.join(video_ids)
-    print(f'Downloading {id_str}')
-    cmd = f'twitch-dl download -q source -f mp4 -o videos/{"{id}.mp4"} {id_str}'
-
-    # This is to print out the progress
-    with subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, text=True, bufsize=1) as p:
-        for line in p.stdout:
-            print('\r' + str(line).replace('\n',''), end='\r')
-
-    if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, p.args)
-    print('\r')
-    p.kill()
-
-# TODO: Save video metadata
-
-def get_diff():
-    relevant_videos = get_relevant_videos(TEST_STREAMERS)
-    local_videos = get_local_videos()
-    local_video_ids = [video['id'] for video in local_videos]
-    videos_to_delete = [video for video in local_videos if not is_video_relevant(video)]
-    videos_to_download = [video for video in relevant_videos if not video['id'] in local_video_ids]
-    return videos_to_delete, videos_to_download
-
-delete, download = get_diff()
-download_videos(download)
-print('Done')
-
+    for video_id in video_ids:
+        try:
+            download_video(video_id)
+        except:
+            print('Failed to download ' + str(video_id))
