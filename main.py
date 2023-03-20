@@ -11,7 +11,8 @@ END_PERIOD = 10
 
 if __name__ == '__main__':
     # 1. extract videos
-    videos = get_relevant_videos(STREAMERS, VIDEO_AGE_THRESHOLD)
+    videos = get_relevant_videos(
+        STREAMERS, VIDEO_AGE_THRESHOLD, max_per_channel=3)
     # download_videos(videos) # files are saved in /videos/
 
     # 2. cut videos

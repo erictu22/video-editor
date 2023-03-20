@@ -13,7 +13,8 @@ def cut_video(video_id, intervals, start_grace, end_grace):
     cuts = get_cuts(video_id, intervals=intervals,
                     start_grace=start_grace, end_grace=end_grace)
     video = me.VideoFileClip(f'videos/{video_id}.mp4')
-
+    print("Cutting at ")
+    print(cuts)
     for cut in cuts:
         clip = video.subclip(cut[0], cut[1])
         h, m, s = seconds_to_hms(cut[0])
@@ -47,7 +48,7 @@ def get_cuts(video_id, intervals, start_grace, end_grace):
         if start == -1 and all(is_ingame for is_ingame in is_ingame_checks[i: i + start_grace]):
             start = timestamps[i]
         elif start != -1 and stop == -1 and all(not is_ingame for is_ingame in is_ingame_checks[i: i + end_grace]):
-            stop = timestamps[i + 1]
+            stop = timestamps[i + 2]
             cuts.append((start, stop))
             start = -1
             stop = -1
@@ -71,6 +72,7 @@ def similarity(image1, image2):
 
 
 def play_video(video_id, intervals=1, start=0, should_record_data=False, should_display=True):
+    print(f'Reading {video_id}')
     cap = cv2.VideoCapture(f'videos/{video_id}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -92,7 +94,7 @@ def play_video(video_id, intervals=1, start=0, should_record_data=False, should_
                                  for img in samples])
                     data.append((int(frame_no / video_fps), score))
                 print(
-                    f'id:{video_id} Progress:{round(frame_no / total_frames * 100, 2)}%', end='\r')
+                    f'Progress:{round(frame_no / total_frames * 100, 2)}%', end='\r')
         else:
             break
         frame_no += 1
@@ -107,4 +109,4 @@ def log_runtime(video_id, start, end, video_runtime):
     h1, m1, s1 = seconds_to_hms(int(end - start))
     h2, m2, s2 = seconds_to_hms(int(video_runtime))
     print(
-        f'\nProcessed {video_id}, a {h2}:{m2}:{s2} video in {h1}:{m1}:{s1} time. Factor:{round(process_time / video_runtime, 2)})')
+        f'\nProcessed {video_id}, a {h2}h {m2}m {s2}s video in {h1}h {m1}m {s1}s')
