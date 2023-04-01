@@ -15,11 +15,14 @@ def cut_video(video_id, intervals, start_grace, end_grace):
     video = me.VideoFileClip(f'videos/{video_id}.mp4')
     print("Cutting at ")
     print(cuts)
+
+    count = 1
     for cut in cuts:
         clip = video.subclip(cut[0], cut[1])
         h, m, s = seconds_to_hms(cut[0])
-        clip.write_videofile(f'cuts/{video_id}_{h}h{m}m{s}s.mp4', temp_audiofile=f'temp/temp-audio-{video_id}.m4a',
+        clip.write_videofile(f'cuts/{count}_{video_id}_{h}h{m}m{s}s.mp4', temp_audiofile=f'temp/temp-audio-{video_id}.m4a',
                              remove_temp=True, codec="libx264", audio_codec="aac")
+        count = count + 1
 
     os.remove(f'./videos/{video_id}.mp4')
 

@@ -3,8 +3,7 @@ import json
 import twitchdl.commands.download as download
 from pprint import pprint
 from datetime import datetime
-import subprocess
-import sys
+import multiprocessing
 
 
 def is_video_relevant(video, thresh):
