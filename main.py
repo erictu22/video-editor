@@ -3,8 +3,8 @@ from edit_videos import cut_video
 import os
 import multiprocessing
 
-STREAMERS = ['ShokLoL']
-VIDEO_AGE_THRESHOLD = 7  # days
+STREAMERS = ['bwipolol']
+VIDEO_AGE_THRESHOLD = 11  # days
 
 SAMPLE_INTERVALS = 30  # seconds
 START_PERIOD = 5
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # 1. extract videos
     videos = get_relevant_videos(
         STREAMERS, VIDEO_AGE_THRESHOLD, max_per_channel=3)
-    # download_videos(videos)  # files are saved in /videos/
+    download_videos(videos)  # files are saved in /videos/
 
     # or use... twitch-dl download -q source 1717734745 1719653944 1721719514 1728794232 1736757792 -w 20 --output {id}.mp4
 

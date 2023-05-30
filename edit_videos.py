@@ -5,8 +5,8 @@ from skimage.metrics import structural_similarity
 import moviepy.editor as me
 import os
 from time import time
-samples = [cv2.imread(f'image-data/{x}')
-           for x in os.listdir('image-data') if x != '.DS_Store']
+image_data = [cv2.imread(f'image-data/{x}')
+              for x in os.listdir('image-data') if x != '.DS_Store']
 
 
 def cut_video(video_id, intervals, start_grace, end_grace):
@@ -34,38 +34,52 @@ def seconds_to_hms(seconds):
 
 
 def get_cuts(video_id, intervals, start_grace, end_grace):
-    data = play_video(video_id=video_id, intervals=intervals,
-                      should_record_data=True, should_display=False)
+    frame_match_scores_with_timestamps = calc_frame_match_scores(video_id=video_id, intervals=intervals,
+                                                                 should_record_data=True, should_display=False)
 
-    scores = [datum[1] for datum in data]
-    timestamps = [datum[0] for datum in data]
-    first_q = numpy.percentile(scores, 25)
-    third_q = numpy.percentile(scores, 75)
-    thresh = (third_q - first_q) / 2 + first_q
-    is_ingame_checks = [score > thresh for score in scores]
+    frame_match_scores = [datum[1]
+                          for datum in frame_match_scores_with_timestamps]
+    timestamps = [datum[0] for datum in frame_match_scores_with_timestamps]
+
+    frame_match_threshold = calc_frame_match_threshold(frame_match_scores)
+    is_frame_match = [
+        score > frame_match_threshold for score in frame_match_scores]
 
     cuts = []
-    start = -1
-    stop = -1
-    for i in range(0, len(is_ingame_checks) - end_grace):
-        if start == -1 and all(is_ingame for is_ingame in is_ingame_checks[i: i + start_grace]):
-            start = timestamps[i]
-        elif start != -1 and stop == -1 and all(not is_ingame for is_ingame in is_ingame_checks[i: i + end_grace]):
-            stop = timestamps[i + 2]
-            cuts.append((start, stop))
-            start = -1
-            stop = -1
+    start_time = -1
+    stop_time = -1
+    for i in range(0, len(is_frame_match) - end_grace):
+
+        is_ingame = all(is_frame_match[i: i + start_grace])
+        is_game_over = all(
+            not is_frame_match for is_frame_match in is_frame_match[i: i + end_grace])
+
+        if start_time == -1 and is_ingame:
+            start_time = timestamps[i]
+        elif start_time != -1 and stop_time == -1 and is_game_over:
+            stop_time = timestamps[i + 2]
+            cuts.append((start_time, stop_time))
+            start_time = -1
+            stop_time = -1
 
     return cuts
 
 
-def similarity(image1, image2):
+def calc_frame_match_threshold(frame_match_scores):
+    first_q = numpy.percentile(frame_match_scores, 25)
+    third_q = numpy.percentile(frame_match_scores, 75)
+    thresh = (third_q - first_q) / 2 + first_q
+    return thresh
+
+
+def calc_similarity(image1, image2):
     # Convert the images to grayscale
     gray_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
     gray_image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
 
-    resized_image1 = cv2.resize(gray_image1, (720, 1280))
-    resized_image2 = cv2.resize(gray_image2, (720, 1280))
+    resize_dimensions = (360, 480)
+    resized_image1 = cv2.resize(gray_image1, resize_dimensions)
+    resized_image2 = cv2.resize(gray_image2, resize_dimensions)
 
     # Compute the SSIM between the two images
     (score, diff) = structural_similarity(
@@ -73,8 +87,10 @@ def similarity(image1, image2):
 
     return score
 
+# Returns a list of timestamps and their frame match scores
 
-def play_video(video_id, intervals=1, start=0, should_record_data=False, should_display=True):
+
+def calc_frame_match_scores(video_id, intervals=1, start=0, should_record_data=False, should_display=True):
     print(f'Reading {video_id}')
     cap = cv2.VideoCapture(f'videos/{video_id}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
@@ -84,7 +100,7 @@ def play_video(video_id, intervals=1, start=0, should_record_data=False, should_
     frame_no = 0
 
     start = time()
-    data = []
+    frame_match_scores = []
     while (cap.isOpened()):
         frame_exists, curr_frame = cap.read()
         if frame_exists:
@@ -93,9 +109,10 @@ def play_video(video_id, intervals=1, start=0, should_record_data=False, should_
                     cv2.imshow('frame', curr_frame)
                     cv2.waitKey(1)
                 if should_record_data:
-                    score = max([similarity(img, curr_frame)
-                                 for img in samples])
-                    data.append((int(frame_no / video_fps), score))
+                    frame_match_score = max([calc_similarity(img, curr_frame)
+                                             for img in image_data])
+                    frame_match_scores.append(
+                        (int(frame_no / video_fps), frame_match_score))
                 print(
                     f'Progress:{round(frame_no / total_frames * 100, 2)}%', end='\r')
         else:
@@ -104,7 +121,7 @@ def play_video(video_id, intervals=1, start=0, should_record_data=False, should_
     cap.release()
     end = time()
     log_runtime(video_id, start, end, total_frames / video_fps)
-    return data
+    return frame_match_scores
 
 
 def log_runtime(video_id, start, end, video_runtime):

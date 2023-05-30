@@ -16,6 +16,7 @@ def get_relevant_videos(channel_names, thresh, max_per_channel=5):
     output = []
     for channel in channel_names:
         video_list_str = os.popen(f'twitch-dl videos -j {channel}').read()
+        print(video_list_str)
         video_list = json.loads(video_list_str)['videos']
         relevant_videos = [x for x in video_list if is_video_relevant(
             x, thresh)][0:max_per_channel]
