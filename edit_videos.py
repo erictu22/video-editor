@@ -125,7 +125,6 @@ def calc_frame_match_scores(video_id, intervals=1, start=0, should_record_data=F
 
 
 def log_runtime(video_id, start, end, video_runtime):
-    process_time = end - start
     h1, m1, s1 = seconds_to_hms(int(end - start))
     h2, m2, s2 = seconds_to_hms(int(video_runtime))
     print(
