@@ -1,14 +1,10 @@
 import unittest
+from edit_videos import get_cuts
 
-class WidgetTestCase(unittest.TestCase):
-    def setUp(self):
-        self.widget = Widget('The widget')
+class TestCases(unittest.TestCase):
+    def test_video_edits(self):
+        cuts = get_cuts('test_video')
+        self.assertEqual(cuts, [(0, 1), (2, 3), (4, 5)])
 
-    def test_default_widget_size(self):
-        self.assertEqual(self.widget.size(), (50,50),
-                         'incorrect default size')
-
-    def test_widget_resize(self):
-        self.widget.resize(100,150)
-        self.assertEqual(self.widget.size(), (100,150),
-                         'wrong size after resize')
+if __name__ == '__main__':
+    unittest.main()

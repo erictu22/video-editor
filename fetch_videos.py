@@ -1,7 +1,6 @@
 from datetime import datetime
 import json
 import os
-import pprint
 
 def is_video_relevant(video, thresh):
     date = datetime.strptime(video['publishedAt'], '%Y-%m-%dT%H:%M:%SZ')

@@ -9,32 +9,22 @@ image_data = [cv2.imread(f'image-data/{x}')
               for x in os.listdir('image-data') if x != '.DS_Store']
 
 
-def cut_video(video_id, intervals = 30, start_grace = 5, end_grace = 7):
-    cuts = get_cuts(video_id, intervals=intervals,
-                    start_grace=start_grace, end_grace=end_grace)
-    video = me.VideoFileClip(f'videos/{video_id}.mp4')
-    print("Cutting at ")
-    print(cuts)
+def cut_video(file_name):
+    cuts = get_cuts(file_name)
+    video = me.VideoFileClip(f'videos/{file_name}.mp4')
+    print("Cutting at " + str(cuts))
 
-    count = 1
+    cut_id = 1
     for cut in cuts:
         clip = video.subclip(cut[0], cut[1])
-        h, m, s = seconds_to_hms(cut[0])
-        clip.write_videofile(f'cuts/{count}_{video_id}_{h}h{m}m{s}s.mp4', temp_audiofile=f'temp/temp-audio-{video_id}.m4a',
+        clip.write_videofile(f'cuts/{file_name}_{cut_id}.mp4', temp_audiofile=f'temp/temp-audio-{file_name}.m4a',
                              remove_temp=True, codec="libx264", audio_codec="aac")
-        count = count + 1
+        cut_id = cut_id + 1
 
-    os.remove(f'./videos/{video_id}.mp4')
+    os.remove(f'videos/{file_name}.mp4')
 
-
-def seconds_to_hms(seconds):
-    m, s = divmod(seconds, 60)
-    h, m = divmod(m, 60)
-    return h, m, s
-
-
-def get_cuts(video_id, intervals, start_grace, end_grace):
-    frame_match_scores_with_timestamps = calc_frame_match_scores(video_id=video_id, intervals=intervals, should_display=False)
+def get_cuts(file_name, intervals = 30, start_grace = 5, end_grace = 7):
+    frame_match_scores_with_timestamps = calc_frame_match_scores(file_name=file_name, intervals=intervals, should_display=False)
 
     frame_match_scores = [datum[1]
                           for datum in frame_match_scores_with_timestamps]
@@ -48,7 +38,6 @@ def get_cuts(video_id, intervals, start_grace, end_grace):
     start_time = -1
     stop_time = -1
     for i in range(0, len(is_frame_match) - end_grace):
-
         is_ingame = all(is_frame_match[i: i + start_grace])
         is_game_over = all(
             not is_frame_match for is_frame_match in is_frame_match[i: i + end_grace])
@@ -89,9 +78,9 @@ def calc_similarity(image1, image2):
 # Returns a list of timestamps and their frame match scores
 
 
-def calc_frame_match_scores(video_id, intervals=1, start=0, should_display=False):
-    print(f'Reading {video_id}')
-    cap = cv2.VideoCapture(f'videos/{video_id}.mp4')
+def calc_frame_match_scores(file_name, intervals=1, start=0, should_display=False):
+    print(f'Reading {file_name}')
+    cap = cv2.VideoCapture(f'videos/{file_name}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if start != 0:  # Don't seek unless we have to
@@ -116,7 +105,7 @@ def calc_frame_match_scores(video_id, intervals=1, start=0, should_display=False
         frame_no += 1
     cap.release()
     end = time()
-    log_runtime(video_id, start, end, total_frames / video_fps)
+    log_runtime(file_name, start, end, total_frames / video_fps)
     return frame_match_scores
 
 
