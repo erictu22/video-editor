@@ -4,10 +4,8 @@ import numpy
 from skimage.metrics import structural_similarity
 import moviepy.editor as me
 import os
-from time import time
 image_data = [cv2.imread(f'image-data/{x}')
               for x in os.listdir('image-data') if x != '.DS_Store']
-
 
 def cut_video(file_name):
     cuts = get_cuts(file_name)
@@ -87,7 +85,6 @@ def calc_frame_match_scores(file_name, intervals=1, start=0, should_display=Fals
         cap.set(cv2.CAP_PROP_POS_FRAMES, start)
     frame_no = 0
 
-    start = time()
     frame_match_scores = []
     while (cap.isOpened()):
         frame_exists, curr_frame = cap.read()
@@ -104,13 +101,4 @@ def calc_frame_match_scores(file_name, intervals=1, start=0, should_display=Fals
             break
         frame_no += 1
     cap.release()
-    end = time()
-    log_runtime(file_name, start, end, total_frames / video_fps)
     return frame_match_scores
-
-
-def log_runtime(video_id, start, end, video_runtime):
-    h1, m1, s1 = seconds_to_hms(int(end - start))
-    h2, m2, s2 = seconds_to_hms(int(video_runtime))
-    print(
-        f'\nProcessed {video_id}, a {h2}h {m2}m {s2}s video in {h1}h {m1}m {s1}s')
