@@ -1,22 +1,25 @@
 import twitchdl.commands.download as download
 from pprint import pprint
 from models import DotDict
+from util import *
 
-
-def download_videos(videos):
+def download_videos(videos, path="videos/{channel}_{id}.{format}"):
     if len(videos) == 0:
-        print('No relevant videos to download')
+        print('Video list is empty')
         return
 
-    video_ids = [video['id'] for video in videos]
-    for video_id in video_ids:
+    for video in videos:
         try:
-            download_video(video_id)
+            print(f'Downloading "{str(video["title"])}"')
+            block_print()
+            download_video(video['id'],path)
+            enable_print()
         except:
-            print('Failed to download ' + str(video_id))
+            enable_print()
+            print('Failed to download ' + str(video['title']))
 
 
-def download_video(video_id):
+def download_video(video_id, path):
     download_args = DotDict(
         {
             "videos": [str(video_id)],
@@ -28,7 +31,7 @@ def download_video(video_id):
             "overwrite": True,
             "start": None,
             "end": None,
-            "output": "videos/{channel}_{id}.{format}",
+            "output": path,
         }
     )
     download(download_args)

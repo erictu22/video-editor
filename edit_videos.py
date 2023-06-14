@@ -9,7 +9,7 @@ image_data = [cv2.imread(f'image-data/{x}')
               for x in os.listdir('image-data') if x != '.DS_Store']
 
 
-def cut_video(video_id, intervals, start_grace, end_grace):
+def cut_video(video_id, intervals = 30, start_grace = 5, end_grace = 7):
     cuts = get_cuts(video_id, intervals=intervals,
                     start_grace=start_grace, end_grace=end_grace)
     video = me.VideoFileClip(f'videos/{video_id}.mp4')
@@ -34,8 +34,7 @@ def seconds_to_hms(seconds):
 
 
 def get_cuts(video_id, intervals, start_grace, end_grace):
-    frame_match_scores_with_timestamps = calc_frame_match_scores(video_id=video_id, intervals=intervals,
-                                                                 should_record_data=True, should_display=False)
+    frame_match_scores_with_timestamps = calc_frame_match_scores(video_id=video_id, intervals=intervals, should_display=False)
 
     frame_match_scores = [datum[1]
                           for datum in frame_match_scores_with_timestamps]
@@ -90,7 +89,7 @@ def calc_similarity(image1, image2):
 # Returns a list of timestamps and their frame match scores
 
 
-def calc_frame_match_scores(video_id, intervals=1, start=0, should_record_data=False, should_display=True):
+def calc_frame_match_scores(video_id, intervals=1, start=0, should_display=False):
     print(f'Reading {video_id}')
     cap = cv2.VideoCapture(f'videos/{video_id}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
@@ -108,13 +107,10 @@ def calc_frame_match_scores(video_id, intervals=1, start=0, should_record_data=F
                 if should_display:
                     cv2.imshow('frame', curr_frame)
                     cv2.waitKey(1)
-                if should_record_data:
-                    frame_match_score = max([calc_similarity(img, curr_frame)
-                                             for img in image_data])
-                    frame_match_scores.append(
-                        (int(frame_no / video_fps), frame_match_score))
-                print(
-                    f'Progress:{round(frame_no / total_frames * 100, 2)}%', end='\r')
+                frame_match_score = max([calc_similarity(img, curr_frame)
+                                            for img in image_data])
+                frame_match_scores.append(
+                    (int(frame_no / video_fps), frame_match_score))
         else:
             break
         frame_no += 1
