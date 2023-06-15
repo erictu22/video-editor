@@ -10,9 +10,17 @@ VIDEO_IDS = [1843365077]
 VIDEO_AGE_THRESHOLD = 11  # days
 
 def edit_video(video_id):
-    cut_video(video_id)
+    cut_video(f'videos/{video_id}')
 
 if __name__ == '__main__':
+    # set up
+    try:
+        os.mkdir('videos')
+        os.mkdir('cuts')
+        os.mkdir('temp')
+    except:
+        pass
+
     # 1. extract videos
     videos = []
     if SHOULD_USE_IDS:
@@ -22,7 +30,7 @@ if __name__ == '__main__':
             STREAMERS, VIDEO_AGE_THRESHOLD, max_per_channel=3)
 
     # a video has an 'id', 'title', 'lengthSeconds' field
-    download_videos(videos)
+    # download_videos(videos)
 
     # 2. cut videos
     video_ids = [x.split('.')[0]

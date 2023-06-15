@@ -7,11 +7,13 @@ import os
 image_data = [cv2.imread(f'image-data/{x}')
               for x in os.listdir('image-data') if x != '.DS_Store']
 
-def cut_video(file_name):
-    cuts = get_cuts(file_name)
-    video = me.VideoFileClip(f'videos/{file_name}.mp4')
+def cut_video(file_path):
+    print(file_path)
+    cuts = get_cuts(file_path)
+    video = me.VideoFileClip(f'{file_path}.mp4')
     print("Cutting at " + str(cuts))
 
+    file_name = file_path.split('/')[-1]
     cut_id = 1
     for cut in cuts:
         clip = video.subclip(cut[0], cut[1])
@@ -19,9 +21,9 @@ def cut_video(file_name):
                              remove_temp=True, codec="libx264", audio_codec="aac")
         cut_id = cut_id + 1
 
-    os.remove(f'videos/{file_name}.mp4')
+    os.remove(f'{file_path}.mp4')
 
-def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
+def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
     frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals, should_display=False)
     is_frame_match = apply_bool_filter(frame_match_scores)
     print(is_frame_match)
@@ -45,7 +47,7 @@ def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
     return cuts
 
 # Returns a list of timestamps and their frame match scores
-def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=False):
+def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=True):
     print(f'Reading {file_path}')
     cap = cv2.VideoCapture(f'{file_path}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
@@ -59,7 +61,7 @@ def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=Fals
         if frame_exists:
             if should_display:
                 cv2.imshow('frame', curr_frame)
-                cv2.waitKey(1)
+                cv2.waitKey(10)
             frame_match_score = max([calc_similarity(img, curr_frame)
                                         for img in image_data])
             match_scores_and_timestamps.append(
