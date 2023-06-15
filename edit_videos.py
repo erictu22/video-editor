@@ -21,35 +21,63 @@ def cut_video(file_name):
 
     os.remove(f'videos/{file_name}.mp4')
 
-def get_cuts(file_name, intervals = 30, start_grace = 5, end_grace = 7):
-    frame_match_scores_with_timestamps = calc_frame_match_scores(file_name=file_name, intervals=intervals, should_display=False)
-
-    frame_match_scores = [datum[1]
-                          for datum in frame_match_scores_with_timestamps]
-    timestamps = [datum[0] for datum in frame_match_scores_with_timestamps]
-
-    frame_match_threshold = calc_frame_match_threshold(frame_match_scores)
-    is_frame_match = [
-        score > frame_match_threshold for score in frame_match_scores]
+def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
+    frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals, should_display=False)
+    is_frame_match = apply_bool_filter(frame_match_scores)
 
     cuts = []
     start_time = -1
     stop_time = -1
-    for i in range(0, len(is_frame_match) - end_grace):
-        is_ingame = all(is_frame_match[i: i + start_grace])
+    for intv in range(0, len(is_frame_match) - end_grace):
+        is_ingame = all(is_frame_match[intv: intv + start_grace])
         is_game_over = all(
-            not is_frame_match for is_frame_match in is_frame_match[i: i + end_grace])
+            not is_frame_match for is_frame_match in is_frame_match[intv: intv + end_grace])
 
         if start_time == -1 and is_ingame:
-            start_time = timestamps[i]
+            start_time = timestamps[intv]
         elif start_time != -1 and stop_time == -1 and is_game_over:
-            stop_time = timestamps[i + 2]
+            stop_time = timestamps[intv + 2]
             cuts.append((start_time, stop_time))
             start_time = -1
             stop_time = -1
 
     return cuts
 
+# Returns a list of timestamps and their frame match scores
+def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=False):
+    print(f'Reading {file_path}')
+    cap = cv2.VideoCapture(f'{file_path}.mp4')
+    video_fps = cap.get(cv2.CAP_PROP_FPS)
+    if start != 0:  # Don't seek unless we have to
+        cap.set(cv2.CAP_PROP_POS_FRAMES, start)
+    frame_no = 0
+
+    match_scores_and_timestamps = []
+    while (cap.isOpened()):
+        frame_exists, curr_frame = cap.read()
+        if frame_exists:
+            if frame_no % int(intervals * video_fps) == 0:
+                if should_display:
+                    cv2.imshow('frame', curr_frame)
+                    cv2.waitKey(1)
+                frame_match_score = max([calc_similarity(img, curr_frame)
+                                            for img in image_data])
+                match_scores_and_timestamps.append(
+                    (int(frame_no / video_fps), frame_match_score))
+        else:
+            break
+        frame_no += 1
+    cap.release()
+
+    match_scores = [datum[1]
+                          for datum in match_scores_and_timestamps]
+    timestamps = [datum[0] for datum in match_scores_and_timestamps]
+    return match_scores, timestamps
+
+def apply_bool_filter(frame_match_scores):
+    frame_match_threshold = calc_frame_match_threshold(frame_match_scores)
+    return [
+        score > frame_match_threshold for score in frame_match_scores]
 
 def calc_frame_match_threshold(frame_match_scores):
     first_q = numpy.percentile(frame_match_scores, 25)
@@ -72,33 +100,3 @@ def calc_similarity(image1, image2):
         resized_image1, resized_image2, full=True)
 
     return score
-
-# Returns a list of timestamps and their frame match scores
-
-
-def calc_frame_match_scores(file_name, intervals=1, start=0, should_display=False):
-    print(f'Reading {file_name}')
-    cap = cv2.VideoCapture(f'videos/{file_name}.mp4')
-    video_fps = cap.get(cv2.CAP_PROP_FPS)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    if start != 0:  # Don't seek unless we have to
-        cap.set(cv2.CAP_PROP_POS_FRAMES, start)
-    frame_no = 0
-
-    frame_match_scores = []
-    while (cap.isOpened()):
-        frame_exists, curr_frame = cap.read()
-        if frame_exists:
-            if frame_no % int(intervals * video_fps) == 0:
-                if should_display:
-                    cv2.imshow('frame', curr_frame)
-                    cv2.waitKey(1)
-                frame_match_score = max([calc_similarity(img, curr_frame)
-                                            for img in image_data])
-                frame_match_scores.append(
-                    (int(frame_no / video_fps), frame_match_score))
-        else:
-            break
-        frame_no += 1
-    cap.release()
-    return frame_match_scores
