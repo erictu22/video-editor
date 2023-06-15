@@ -33,8 +33,7 @@ if __name__ == '__main__':
     # download_videos(videos)
 
     # 2. cut videos
-    video_ids = [x.split('.')[0]
-                 for x in os.listdir('videos') if x != '.DS_Store']
+    video_ids = [x for x in os.listdir('videos') if x != '.DS_Store']
 
     pool = multiprocessing.Pool(processes=4)
     pool.map(edit_video, video_ids)

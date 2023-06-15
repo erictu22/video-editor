@@ -10,7 +10,6 @@ image_data = [cv2.imread(f'image-data/{x}')
               for x in os.listdir('image-data') if x != '.DS_Store']
 
 def cut_video(file_path):
-    print(file_path)
     cuts = get_cuts(file_path)
     video = me.VideoFileClip(f'{file_path}.mp4')
     print("Cutting at " + str(cuts))
@@ -26,7 +25,7 @@ def cut_video(file_path):
     os.remove(f'{file_path}.mp4')
 
 def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
-    frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals)
+    frame_match_scores, timestamps = calc_frame_match_scores(file_path, intervals=intervals)
     is_frame_match = apply_bool_filter(frame_match_scores)
 
     cuts = []
@@ -49,7 +48,7 @@ def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
 
 # Returns a list of timestamps and their frame match scores
 def calc_frame_match_scores(file_path, intervals=15):
-    cap = cv2.VideoCapture(f'{file_path}.mp4')
+    cap = cv2.VideoCapture(file_path)
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     match_scores_and_timestamps = []
     
