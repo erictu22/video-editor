@@ -28,7 +28,7 @@ if __name__ == '__main__':
     video_ids = [x.split('.')[0]
                  for x in os.listdir('videos') if x != '.DS_Store']
 
-    # pool = multiprocessing.Pool(processes=4)
-    # pool.map(edit_video, video_ids)
-    # pool.close()
-    # pool.join()
+    pool = multiprocessing.Pool(processes=4)
+    pool.map(edit_video, video_ids)
+    pool.close()
+    pool.join()

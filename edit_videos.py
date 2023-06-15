@@ -24,6 +24,7 @@ def cut_video(file_name):
 def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
     frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals, should_display=False)
     is_frame_match = apply_bool_filter(frame_match_scores)
+    print(is_frame_match)
 
     cuts = []
     start_time = -1
@@ -56,14 +57,18 @@ def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=Fals
     while (cap.isOpened()):
         frame_exists, curr_frame = cap.read()
         if frame_exists:
-            if frame_no % int(intervals * video_fps) == 0:
-                if should_display:
-                    cv2.imshow('frame', curr_frame)
-                    cv2.waitKey(1)
-                frame_match_score = max([calc_similarity(img, curr_frame)
-                                            for img in image_data])
-                match_scores_and_timestamps.append(
-                    (int(frame_no / video_fps), frame_match_score))
+            if should_display:
+                cv2.imshow('frame', curr_frame)
+                cv2.waitKey(1)
+            frame_match_score = max([calc_similarity(img, curr_frame)
+                                        for img in image_data])
+            match_scores_and_timestamps.append(
+                (int(frame_no / video_fps), frame_match_score))
+            
+            # skip to next frame
+            num_frames_to_skip = int(video_fps * intervals)
+            frame_no += num_frames_to_skip
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
         else:
             break
         frame_no += 1
