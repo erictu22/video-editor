@@ -24,7 +24,7 @@ def cut_video(file_path):
     os.remove(f'{file_path}.mp4')
 
 def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
-    frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals, should_display=False)
+    frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals)
     is_frame_match = apply_bool_filter(frame_match_scores)
     print(is_frame_match)
 
@@ -47,7 +47,7 @@ def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
     return cuts
 
 # Returns a list of timestamps and their frame match scores
-def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=True):
+def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=False):
     print(f'Reading {file_path}')
     cap = cv2.VideoCapture(f'{file_path}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
@@ -60,8 +60,12 @@ def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=True
         frame_exists, curr_frame = cap.read()
         if frame_exists:
             if should_display:
-                cv2.imshow('frame', curr_frame)
-                cv2.waitKey(10)
+                print('here')
+                cv2.imshow('Frame', curr_frame)
+
+                # press q on keyboard to exit
+                if cv2.waitKey(10) & 0xFF == ord('q'): 
+                    break
             frame_match_score = max([calc_similarity(img, curr_frame)
                                         for img in image_data])
             match_scores_and_timestamps.append(
