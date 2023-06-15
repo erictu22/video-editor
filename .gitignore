@@ -2,6 +2,6 @@ videos/
 cuts/
 temp/
 .DS_Store
-__pychache__/
+*__pychache__*
 test-videos/
-__pychache__/*
+__pychache__

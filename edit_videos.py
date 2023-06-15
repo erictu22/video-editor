@@ -4,6 +4,8 @@ import numpy
 from skimage.metrics import structural_similarity
 import moviepy.editor as me
 import os
+
+from process_video import process_video
 image_data = [cv2.imread(f'image-data/{x}')
               for x in os.listdir('image-data') if x != '.DS_Store']
 
@@ -26,7 +28,6 @@ def cut_video(file_path):
 def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
     frame_match_scores, timestamps = calc_frame_match_scores(file_path=file_path, intervals=intervals)
     is_frame_match = apply_bool_filter(frame_match_scores)
-    print(is_frame_match)
 
     cuts = []
     start_time = -1
@@ -47,38 +48,18 @@ def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
     return cuts
 
 # Returns a list of timestamps and their frame match scores
-def calc_frame_match_scores(file_path, intervals=1, start=0, should_display=False):
-    print(f'Reading {file_path}')
+def calc_frame_match_scores(file_path, intervals=15):
     cap = cv2.VideoCapture(f'{file_path}.mp4')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
-    if start != 0:  # Don't seek unless we have to
-        cap.set(cv2.CAP_PROP_POS_FRAMES, start)
-    frame_no = 0
-
     match_scores_and_timestamps = []
-    while (cap.isOpened()):
-        frame_exists, curr_frame = cap.read()
-        if frame_exists:
-            if should_display:
-                print('here')
-                cv2.imshow('Frame', curr_frame)
-
-                # press q on keyboard to exit
-                if cv2.waitKey(10) & 0xFF == ord('q'): 
-                    break
-            frame_match_score = max([calc_similarity(img, curr_frame)
-                                        for img in image_data])
-            match_scores_and_timestamps.append(
+    
+    def on_frame(curr_frame, frame_no):
+        frame_match_score = max([calc_similarity(img, curr_frame)
+                            for img in image_data])
+        match_scores_and_timestamps.append(
                 (int(frame_no / video_fps), frame_match_score))
-            
-            # skip to next frame
-            num_frames_to_skip = int(video_fps * intervals)
-            frame_no += num_frames_to_skip
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
-        else:
-            break
-        frame_no += 1
-    cap.release()
+        
+    process_video(file_path, on_frame, intervals=intervals)
 
     match_scores = [datum[1]
                           for datum in match_scores_and_timestamps]
