@@ -6,12 +6,12 @@ import moviepy.editor as me
 import os
 
 from process_video import process_video
-image_data = [cv2.imread(f'image-data/{x}')
-              for x in os.listdir('image-data') if x != '.DS_Store']
+image_data = [cv2.imread(f'image-data/gameplay/{x}')
+              for x in os.listdir('image-data/gameplay') if x != '.DS_Store']
 
 def cut_video(file_path):
     cuts = get_cuts(file_path)
-    video = me.VideoFileClip(f'{file_path}.mp4')
+    video = me.VideoFileClip(file_path)
     print("Cutting at " + str(cuts))
 
     file_name = file_path.split('/')[-1]
@@ -22,7 +22,7 @@ def cut_video(file_path):
                              remove_temp=True, codec="libx264", audio_codec="aac")
         cut_id = cut_id + 1
 
-    os.remove(f'{file_path}.mp4')
+    os.remove(file_path)
 
 def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
     frame_match_scores, timestamps = calc_frame_match_scores(file_path, intervals=intervals)

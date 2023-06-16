@@ -9,7 +9,7 @@ class TestCases(unittest.TestCase):
         except:
             pass
 
-        cuts = get_cuts('test-videos/test_video', intervals=15, start_grace=5, end_grace=5)
+        cuts = get_cuts('test-videos/test_video.mp4', intervals=15, start_grace=5, end_grace=5)
         self.assertEqual(len(cuts), 2)
 
 if __name__ == '__main__':
