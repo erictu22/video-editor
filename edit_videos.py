@@ -1,12 +1,12 @@
 import cv2
 from math import *
 import numpy
-from skimage.metrics import structural_similarity
 import moviepy.editor as me
 import os
 import uuid
 
 from process_video import process_video
+from scoring import calc_similarity
 image_data = [cv2.imread(f'image-data/gameplay/{x}')
               for x in os.listdir('image-data/gameplay') if x != '.DS_Store']
 
@@ -77,19 +77,3 @@ def calc_frame_match_threshold(frame_match_scores):
     third_q = numpy.percentile(frame_match_scores, 75)
     thresh = (third_q - first_q) / 2 + first_q
     return thresh
-
-
-def calc_similarity(image1, image2):
-    # Convert the images to grayscale
-    gray_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-    gray_image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
-
-    resize_dimensions = (360, 480)
-    resized_image1 = cv2.resize(gray_image1, resize_dimensions)
-    resized_image2 = cv2.resize(gray_image2, resize_dimensions)
-
-    # Compute the SSIM between the two images
-    (score, diff) = structural_similarity(
-        resized_image1, resized_image2, full=True)
-
-    return score
