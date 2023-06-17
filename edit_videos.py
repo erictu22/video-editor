@@ -22,7 +22,7 @@ def cut_video(file_path):
 
     os.remove(file_path)
 
-def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
+def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
     frame_match_scores, timestamps = calc_frame_match_scores(file_path, intervals)
     is_frame_match = apply_bool_filter(frame_match_scores)
 
