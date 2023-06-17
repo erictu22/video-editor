@@ -14,25 +14,22 @@ def cut_video(file_path):
     cuts = get_cuts(file_path)
     video = me.VideoFileClip(file_path)
     print("Cutting at " + str(cuts))
-
-    file_name = str(uuid.uuid4())
-    cut_id = 1
     for cut in cuts:
+        file_name = str(uuid.uuid4())
         clip = video.subclip(cut[0], cut[1])
         clip.write_videofile(f'cuts/{file_name}.mp4', temp_audiofile=f'temp/temp-audio-{file_name}.m4a',
                              remove_temp=True, codec="libx264", audio_codec="aac")
-        cut_id = cut_id + 1
 
     os.remove(file_path)
 
 def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
-    frame_match_scores, timestamps = calc_frame_match_scores(file_path, intervals=intervals)
+    frame_match_scores, timestamps = calc_frame_match_scores(file_path, intervals)
     is_frame_match = apply_bool_filter(frame_match_scores)
 
     cuts = []
     start_time = -1
     stop_time = -1
-    for intv in range(0, len(is_frame_match) - end_grace):
+    for intv in range(0, len(is_frame_match)):
         is_ingame = all(is_frame_match[intv: intv + start_grace])
         is_game_over = all(
             not is_frame_match for is_frame_match in is_frame_match[intv: intv + end_grace])
@@ -40,15 +37,19 @@ def get_cuts(file_path, intervals = 15, start_grace = 5, end_grace = 5):
         if start_time == -1 and is_ingame:
             start_time = timestamps[intv]
         elif start_time != -1 and stop_time == -1 and is_game_over:
-            stop_time = timestamps[intv + 2]
+            stop_time = timestamps[intv]
             cuts.append((start_time, stop_time))
             start_time = -1
             stop_time = -1
+        elif start_time != -1 and intv + end_grace >= len(is_frame_match): # video is over
+            stop_time = timestamps[intv]
+            cuts.append((start_time, stop_time))
+            break
 
     return cuts
 
 # Returns a list of timestamps and their frame match scores
-def calc_frame_match_scores(file_path, intervals=15):
+def calc_frame_match_scores(file_path, intervals):
     cap = cv2.VideoCapture(file_path)
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     match_scores_and_timestamps = []
@@ -59,7 +60,7 @@ def calc_frame_match_scores(file_path, intervals=15):
         match_scores_and_timestamps.append(
                 (int(frame_no / video_fps), frame_match_score))
         
-    process_video(file_path, on_frame, intervals=intervals)
+    process_video(file_path, on_frame, intervals)
 
     match_scores = [datum[1]
                           for datum in match_scores_and_timestamps]

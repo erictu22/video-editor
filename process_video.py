@@ -2,7 +2,7 @@
 import cv2
 
 SHOW_FRAMES = False
-def process_video(file_path, on_frame, intervals=15):
+def process_video(file_path, on_frame, intervals):
     print(f'Reading {file_path}')
     cap = cv2.VideoCapture(f'{file_path}')
     video_fps = cap.get(cv2.CAP_PROP_FPS)
