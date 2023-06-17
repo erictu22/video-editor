@@ -1,7 +1,7 @@
 # Returns a list of timestamps and their frame match scores
 import cv2
 
-SHOW_FRAMES = True
+SHOW_FRAMES = False
 def process_video(file_path, on_frame, intervals=15):
     print(f'Reading {file_path}')
     cap = cv2.VideoCapture(f'{file_path}')

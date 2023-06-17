@@ -4,22 +4,21 @@ from edit_videos import cut_video
 import os
 import multiprocessing
 
+from util import safe_mkdir
+
 STREAMERS = ['bwipolol']
 SHOULD_USE_IDS = True
-VIDEO_IDS = [1843365077]
+VIDEO_IDS = [1843365077, 1840763504]
 VIDEO_AGE_THRESHOLD = 11  # days
 
-def edit_video(video_id):
-    cut_video(f'videos/{video_id}.mp4')
+def edit_video(file_name):
+    cut_video(f'videos/{file_name}')
 
 if __name__ == '__main__':
     # set up
-    try:
-        os.mkdir('videos')
-        os.mkdir('cuts')
-        os.mkdir('temp')
-    except:
-        pass
+    safe_mkdir('videos')
+    safe_mkdir('cuts')
+    safe_mkdir('temp')
 
     # 1. extract videos
     videos = []
@@ -33,9 +32,9 @@ if __name__ == '__main__':
     # download_videos(videos)
 
     # 2. cut videos
-    video_ids = [x for x in os.listdir('videos') if x != '.DS_Store']
+    video_file_names = [x for x in os.listdir('videos') if x != '.DS_Store']
 
     pool = multiprocessing.Pool(processes=4)
-    pool.map(edit_video, video_ids)
+    pool.map(edit_video, video_file_names)
     pool.close()
     pool.join()

@@ -4,6 +4,7 @@ import numpy
 from skimage.metrics import structural_similarity
 import moviepy.editor as me
 import os
+import uuid
 
 from process_video import process_video
 image_data = [cv2.imread(f'image-data/gameplay/{x}')
@@ -14,11 +15,11 @@ def cut_video(file_path):
     video = me.VideoFileClip(file_path)
     print("Cutting at " + str(cuts))
 
-    file_name = file_path.split('/')[-1]
+    file_name = str(uuid.uuid4())
     cut_id = 1
     for cut in cuts:
         clip = video.subclip(cut[0], cut[1])
-        clip.write_videofile(f'cuts/{file_name}_{cut_id}.mp4', temp_audiofile=f'temp/temp-audio-{file_name}.m4a',
+        clip.write_videofile(f'cuts/{file_name}.mp4', temp_audiofile=f'temp/temp-audio-{file_name}.m4a',
                              remove_temp=True, codec="libx264", audio_codec="aac")
         cut_id = cut_id + 1
 

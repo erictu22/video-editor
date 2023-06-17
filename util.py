@@ -7,3 +7,9 @@ def block_print():
 # Restore
 def enable_print():
     sys.stdout = sys.__stdout__
+
+def safe_mkdir(dir_name):
+    try:
+        os.mkdir(dir_name)
+    except:
+        pass
