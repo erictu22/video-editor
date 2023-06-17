@@ -10,7 +10,7 @@ VIDEO_IDS = [1843365077]
 VIDEO_AGE_THRESHOLD = 11  # days
 
 def edit_video(video_id):
-    cut_video(f'videos/{video_id}')
+    cut_video(f'videos/{video_id}.mp4')
 
 if __name__ == '__main__':
     # set up
