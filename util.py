@@ -22,3 +22,6 @@ def pick_n_highest_scores(arr, n, calc_score):
     scores = [(calc_score(x), x) for x in arr]
     scores.sort(key=lambda x: x[0], reverse=True)
     return [pair[1] for pair in scores[:n]]
+
+def add_weight(score, weight):
+    return score ** weight

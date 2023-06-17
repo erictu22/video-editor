@@ -7,8 +7,9 @@ import cv2
 from edit_videos import calc_similarity
 
 from process_video import process_video
-from scoring import calc_color_score, calculate_busyness
-from util import pick_n_highest_scores, safe_mkdir
+from scoring import calc_color_score, calc_similarity_score, calculate_busyness
+from util import add_weight, pick_n_highest_scores, safe_mkdir
+import shutil
 
 NUM_CHOICES = 5
 BEST_N = 10
@@ -31,11 +32,11 @@ def rate_frames(frames):
     frame_match_scores = []
 
     for frame in frames:
-        similarity_score = max([calc_similarity(img, frame) for img in images])
+        similarity_score = calc_similarity_score(frame, images)
         color_score = calc_color_score(frame)
         busyness = calculate_busyness(frame)
 
-        frame_match_score = color_score * similarity_score * busyness
+        frame_match_score = color_score * add_weight(similarity_score, 3) * busyness
 
         frame_match_scores.append(frame_match_score)
     return frame_match_scores
@@ -82,13 +83,13 @@ def save_result(video_file_path, thumbnail, id):
     file_name = f'{thumbnail_dir}/thumbnail_{id}.jpg'
     cv2.imwrite(file_name, thumbnail)
 
-def create_thumbnail(video_file_name):
+def create_thumbnail(video_file_name, top_n=10):
     frames = fetch_frames(f'cuts/{video_file_name}')
     print(f'Scoring frames for {video_file_name}')
     frame_scores = rate_frames(frames)
     
     # find indices for the highest-scoring frames
-    best_indices = sorted(range(len(frame_scores)), key=lambda i: frame_scores[i])[-50:]
+    best_indices = sorted(range(len(frame_scores)), key=lambda i: frame_scores[i])[-1 * top_n:]
     frames = [frames[i] for i in best_indices]
 
     slices = slice(frames)
@@ -102,7 +103,7 @@ def create_thumbnail(video_file_name):
 
 if __name__ == '__main__':
     video_files = [x for x in os.listdir('cuts') if x != '.DS_Store']
-    os.rmdir('thumbnails')
+    shutil.rmtree('thumbnails')
 
     pool = multiprocessing.Pool(processes=8)
     pool.map(create_thumbnail, video_files)

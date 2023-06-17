@@ -26,6 +26,10 @@ def calc_color_score(frame):
     grayscale_score = int(difference.sum() / (width * height))
     return grayscale_score
 
+def calc_similarity_score(frame, images):
+    similarity_score = max([calc_similarity(img, frame) for img in images]) * 10
+    return similarity_score
+
 def calc_similarity(image1, image2):
     # Convert the images to grayscale
     gray_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
