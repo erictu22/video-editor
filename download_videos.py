@@ -3,7 +3,7 @@ from pprint import pprint
 from models import DotDict
 from util import *
 
-def download_videos(videos, path="videos/{channel}_{id}.{format}"):
+def download_videos(videos, path="videos/ | {channel} (streamed on {date}).{format}"):
     if len(videos) == 0:
         print('Video list is empty')
         return

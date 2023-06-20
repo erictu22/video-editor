@@ -4,10 +4,11 @@ import numpy
 import moviepy.editor as me
 import os
 import uuid
+from main import STREAMER
 
 from process_video import process_video
 from scoring import calc_similarity
-image_data = [cv2.imread(f'image-data/gameplay/{x}')
+image_data = [cv2.imread(f'image-data/{STREAMER}/{x}')
               for x in os.listdir('image-data/gameplay') if x != '.DS_Store']
 
 def cut_video(file_path):

@@ -6,10 +6,10 @@ import multiprocessing
 
 from util import safe_mkdir
 
-STREAMERS = ['bwipolol']
-SHOULD_USE_IDS = True
+STREAMER = 'spardalol'
+SHOULD_USE_IDS = False
 VIDEO_IDS = [1843365077, 1840763504]
-VIDEO_AGE_THRESHOLD = 11  # days
+VIDEO_AGE_THRESHOLD = 10  # days
 
 def edit_video(file_name):
     cut_video(f'videos/{file_name}')
@@ -23,13 +23,13 @@ if __name__ == '__main__':
     # 1. extract videos
     videos = []
     if SHOULD_USE_IDS:
-        videos = fetch_videos(STREAMERS, VIDEO_IDS)
+        videos = fetch_videos(STREAMER, VIDEO_IDS)
     else:
         videos = fetch_recent_video_metadata(
-            STREAMERS, VIDEO_AGE_THRESHOLD, max_per_channel=3)
+            STREAMER, VIDEO_AGE_THRESHOLD)
 
     # a video has an 'id', 'title', 'lengthSeconds' field
-    # download_videos(videos)
+    download_videos(videos)
 
     # 2. cut videos
     video_file_names = [x for x in os.listdir('videos') if x != '.DS_Store']
