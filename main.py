@@ -1,3 +1,4 @@
+from const import STREAMER
 from download_videos import download_videos
 from fetch_videos import fetch_recent_video_metadata, fetch_videos
 from edit_videos import cut_video
@@ -6,7 +7,6 @@ import multiprocessing
 
 from util import safe_mkdir
 
-STREAMER = 'spardalol'
 SHOULD_USE_IDS = False
 VIDEO_IDS = [1843365077, 1840763504]
 VIDEO_AGE_THRESHOLD = 10  # days

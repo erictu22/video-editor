@@ -14,7 +14,7 @@ import shutil
 from PIL import ImageDraw
 
 NUM_CHOICES = 5
-BEST_N = 10
+BEST_N = 50
 
 SLICE_WIDTH = 640
 SLICE_HEIGHT = 720
@@ -39,10 +39,8 @@ def rate_frames(frames):
     for frame in frames:
         similarity_score = calc_similarity_score(frame, images)
         color_score = calc_color_score(frame)
-        busyness = calculate_busyness(frame)
 
-        frame_match_score = color_score * \
-            add_weight(similarity_score, 3) * busyness
+        frame_match_score = similarity_score
 
         frame_match_scores.append(frame_match_score)
     return frame_match_scores
@@ -88,11 +86,12 @@ def add_effects(thumbnails):
             (0, 165, 255),  # Orange
             (71, 99, 255)  # Tomato
         ]
-        color = random.choice(angry_colors)
+
+        random_color = (random.randint(0, 255), random.randint(0,255), random.randint(0,255))
 
         # add a colored border to the image
         thickness = 32
-        image = add_border(image, color, thickness)
+        image = add_border(image, random_color, thickness)
 
         output.append(image)
 
@@ -111,7 +110,7 @@ def save_result(video_file_path, thumbnail, id):
     cv2.imwrite(file_name, thumbnail)
 
 
-def create_thumbnail(video_file_path, top_n=10):
+def create_thumbnail(video_file_path, top_n=BEST_N):
     frames = fetch_frames(video_file_path)
     print(f'Scoring frames for {video_file_path}')
     frame_scores = rate_frames(frames)

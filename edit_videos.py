@@ -4,12 +4,14 @@ import numpy
 import moviepy.editor as me
 import os
 import uuid
-from main import STREAMER
+from const import STREAMER
 
 from process_video import process_video
 from scoring import calc_similarity
-image_data = [cv2.imread(f'image-data/{STREAMER}/{x}')
-              for x in os.listdir('image-data/gameplay') if x != '.DS_Store']
+
+image_data_dir = f'image-data/{STREAMER}'
+image_data = [cv2.imread(f'{image_data_dir}/{x}')
+              for x in os.listdir(image_data_dir) if x != '.DS_Store']
 
 def cut_video(file_path):
     cuts = get_cuts(file_path)
@@ -30,6 +32,7 @@ def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
     cuts = []
     start_time = -1
     stop_time = -1
+    end_offset = 2
     for intv in range(0, len(is_frame_match)):
         is_ingame = all(is_frame_match[intv: intv + start_grace])
         is_game_over = all(
@@ -39,12 +42,12 @@ def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
             start_time = timestamps[intv]
         elif start_time != -1 and stop_time == -1 and is_game_over:
             stop_time = timestamps[intv]
-            cuts.append((start_time, stop_time))
+            cuts.append((start_time, stop_time + end_offset))
             start_time = -1
             stop_time = -1
         elif start_time != -1 and intv + end_grace >= len(is_frame_match): # video is over
             stop_time = timestamps[intv]
-            cuts.append((start_time, stop_time))
+            cuts.append((start_time, stop_time + end_grace))
             break
 
     return cuts

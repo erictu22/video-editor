@@ -1,0 +1,1 @@
+STREAMER = 'spardalol'
