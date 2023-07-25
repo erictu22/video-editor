@@ -13,7 +13,7 @@ from util import add_weight, pick_n_highest_scores, safe_mkdir
 import shutil
 from PIL import ImageDraw
 
-NUM_CHOICES = 5
+NUM_CHOICES = 15
 BEST_N = 50
 
 SLICE_WIDTH = 640
@@ -26,20 +26,18 @@ def fetch_frames(file_path):
     def on_frame(curr_frame, frame_no):
         frames.append(curr_frame)
 
-    process_video(file_path, on_frame, intervals=5)
+    process_video(file_path, on_frame, intervals=180)
     return frames
 
 
 def rate_frames(frames):
     image_directory = 'image-data/action'
     images = [cv2.imread(f'{image_directory}/{x}')
-              for x in os.listdir(image_directory)]
+              for x in os.listdir(image_directory) if x != '.DS_Store']
     frame_match_scores = []
 
     for frame in frames:
         similarity_score = calc_similarity_score(frame, images)
-        color_score = calc_color_score(frame)
-
         frame_match_score = similarity_score
 
         frame_match_scores.append(frame_match_score)
@@ -79,15 +77,8 @@ def add_effects(thumbnails):
     output = []
     for image in thumbnails:
         # pick a random color that's bright
-        brightness = 140
-        angry_colors = [
-            (0, 0, 255),   # Red
-            (0, 69, 255),  # Orange-Red
-            (0, 165, 255),  # Orange
-            (71, 99, 255)  # Tomato
-        ]
-
-        random_color = (random.randint(0, 255), random.randint(0,255), random.randint(0,255))
+        angry_colors = [(0, 0, 255),(0, 69, 255),(0, 165, 255),(71, 99, 255)]
+        random_color = random.choice(angry_colors)
 
         # add a colored border to the image
         thickness = 32
@@ -124,15 +115,12 @@ def create_thumbnail(video_file_path, top_n=BEST_N):
     thumbnails = stitch(slices)
     thumbnails = add_effects(thumbnails)
 
-    thumbnails = pick_n_highest_scores(
-        thumbnails, NUM_CHOICES, calculate_busyness)
-
     for i, thumbnail in enumerate(thumbnails):
         save_result(video_file_path, thumbnail, i)
 
 
 if __name__ == '__main__':
-    video_directory = 'cuts'
+    video_directory = 'test-videos'
     video_files = [x for x in os.listdir(video_directory) if x != '.DS_Store']
     file_paths = [f'{video_directory}/{x}' for x in video_files]
     try:

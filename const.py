@@ -1,1 +1,1 @@
-STREAMER = 'spardalol'
+STREAMER = 'bwipolol'

@@ -32,7 +32,8 @@ def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
     cuts = []
     start_time = -1
     stop_time = -1
-    end_offset = 2
+    start_offset = 2 * intervals
+    end_offset = 4 * intervals
     for intv in range(0, len(is_frame_match)):
         is_ingame = all(is_frame_match[intv: intv + start_grace])
         is_game_over = all(
@@ -42,12 +43,17 @@ def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
             start_time = timestamps[intv]
         elif start_time != -1 and stop_time == -1 and is_game_over:
             stop_time = timestamps[intv]
-            cuts.append((start_time, stop_time + end_offset))
+            start = start_time - start_offset
+
+            if start < 0:
+                start = 0
+
+            cuts.append((start, stop_time + end_offset))
             start_time = -1
             stop_time = -1
         elif start_time != -1 and intv + end_grace >= len(is_frame_match): # video is over
             stop_time = timestamps[intv]
-            cuts.append((start_time, stop_time + end_grace))
+            cuts.append((start_time - start_offset, stop_time + end_offset))
             break
 
     return cuts

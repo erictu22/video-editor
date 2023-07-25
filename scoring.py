@@ -27,7 +27,11 @@ def calc_color_score(frame):
     return grayscale_score
 
 def calc_similarity_score(frame, images):
-    similarity_score = max([calc_similarity(img, frame) for img in images]) * 10
+    similarity_score = 0
+    try:
+        similarity_score = max([calc_similarity(img, frame) for img in images]) * 10
+    except Exception as e:
+        print("Error calculating similarity score", e)
     return similarity_score
 
 def calc_similarity(image1, image2):

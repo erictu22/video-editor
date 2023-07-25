@@ -7,9 +7,10 @@ import multiprocessing
 
 from util import safe_mkdir
 
-SHOULD_USE_IDS = False
-VIDEO_IDS = [1843365077, 1840763504]
-VIDEO_AGE_THRESHOLD = 10  # days
+SHOULD_DOWNLOAD = True
+SHOULD_USE_IDS = True
+VIDEO_IDS = [1877442987, 1876259617, 1875331077]
+VIDEO_AGE_THRESHOLD = 2  # days
 
 def edit_video(file_name):
     cut_video(f'videos/{file_name}')
@@ -29,7 +30,8 @@ if __name__ == '__main__':
             STREAMER, VIDEO_AGE_THRESHOLD)
 
     # a video has an 'id', 'title', 'lengthSeconds' field
-    download_videos(videos)
+    if SHOULD_DOWNLOAD:
+        download_videos(videos)
 
     # 2. cut videos
     video_file_names = [x for x in os.listdir('videos') if x != '.DS_Store']
