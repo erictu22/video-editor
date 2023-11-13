@@ -7,10 +7,7 @@ import multiprocessing
 
 from util import safe_mkdir
 
-SHOULD_DOWNLOAD = True
-SHOULD_USE_IDS = True
-VIDEO_IDS = [1877442987, 1876259617, 1875331077]
-VIDEO_AGE_THRESHOLD = 2  # days
+from const import STREAMER, SHOULD_DOWNLOAD, SHOULD_USE_IDS, VIDEO_IDS, VIDEO_AGE_THRESHOLD
 
 def edit_video(file_name):
     cut_video(f'videos/{file_name}')

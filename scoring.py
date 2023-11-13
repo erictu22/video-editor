@@ -21,7 +21,6 @@ def calc_color_score(frame):
     difference = cv2.absdiff(grayscale_frame, frame)
 
     # quantify the difference matrix into a single number
-
     width, height, _ = frame.shape
     grayscale_score = int(difference.sum() / (width * height))
     return grayscale_score

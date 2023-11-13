@@ -9,7 +9,7 @@ from const import STREAMER
 from process_video import process_video
 from scoring import calc_similarity
 
-image_data_dir = f'image-data/{STREAMER}'
+image_data_dir = f'image-data/bwipolol'
 image_data = [cv2.imread(f'{image_data_dir}/{x}')
               for x in os.listdir(image_data_dir) if x != '.DS_Store']
 

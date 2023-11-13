@@ -13,12 +13,13 @@ from util import add_weight, pick_n_highest_scores, safe_mkdir
 import shutil
 from PIL import ImageDraw
 
-NUM_CHOICES = 15
-BEST_N = 50
+NUM_THUMBNAILS = 10
+BEST_N = 15
 
 SLICE_WIDTH = 640
 SLICE_HEIGHT = 720
 
+INTERVALS = 5
 
 def fetch_frames(file_path):
     frames = []
@@ -26,23 +27,15 @@ def fetch_frames(file_path):
     def on_frame(curr_frame, frame_no):
         frames.append(curr_frame)
 
-    process_video(file_path, on_frame, intervals=180)
+    process_video(file_path, on_frame, intervals=INTERVALS)
     return frames
 
 
-def rate_frames(frames):
+def rate_frame(frame):
     image_directory = 'image-data/action'
     images = [cv2.imread(f'{image_directory}/{x}')
               for x in os.listdir(image_directory) if x != '.DS_Store']
-    frame_match_scores = []
-
-    for frame in frames:
-        similarity_score = calc_similarity_score(frame, images)
-        frame_match_score = similarity_score
-
-        frame_match_scores.append(frame_match_score)
-    return frame_match_scores
-
+    return calc_similarity_score(frame, images) + calc_color_score(frame) * 100 + calculate_busyness(frame) * 100
 
 def slice(frames):
     slices = []
@@ -59,8 +52,8 @@ def stitch(slices):
     # pick two frame slices and stich them together
     thumbnails = []
 
-    # randomly stich together three slices. do this 10 times
-    for _ in range(10):
+    # randomly stich together three slices
+    for _ in range(NUM_THUMBNAILS):
         stack = slices.copy()
 
         # scramble the stack
@@ -77,11 +70,11 @@ def add_effects(thumbnails):
     output = []
     for image in thumbnails:
         # pick a random color that's bright
-        angry_colors = [(0, 0, 255),(0, 69, 255),(0, 165, 255),(71, 99, 255)]
+        angry_colors = [(0, 69, 255),(0, 165, 255),(71, 99, 255)]
         random_color = random.choice(angry_colors)
 
         # add a colored border to the image
-        thickness = 32
+        thickness = 64
         image = add_border(image, random_color, thickness)
 
         output.append(image)
@@ -104,14 +97,8 @@ def save_result(video_file_path, thumbnail, id):
 def create_thumbnail(video_file_path, top_n=BEST_N):
     frames = fetch_frames(video_file_path)
     print(f'Scoring frames for {video_file_path}')
-    frame_scores = rate_frames(frames)
-
-    # find indices for the highest-scoring frames
-    best_indices = sorted(range(len(frame_scores)),
-                          key=lambda i: frame_scores[i])[-1 * top_n:]
-    frames = [frames[i] for i in best_indices]
-
-    slices = slice(frames)
+    best_frames = pick_n_highest_scores(frames, top_n, rate_frame)
+    slices = slice(best_frames)
     thumbnails = stitch(slices)
     thumbnails = add_effects(thumbnails)
 
@@ -120,7 +107,7 @@ def create_thumbnail(video_file_path, top_n=BEST_N):
 
 
 if __name__ == '__main__':
-    video_directory = 'test-videos'
+    video_directory = 'cuts'
     video_files = [x for x in os.listdir(video_directory) if x != '.DS_Store']
     file_paths = [f'{video_directory}/{x}' for x in video_files]
     try:
