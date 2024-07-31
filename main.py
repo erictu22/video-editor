@@ -33,7 +33,5 @@ if __name__ == '__main__':
     # 2. cut videos
     video_file_names = [x for x in os.listdir('videos') if x != '.DS_Store']
 
-    pool = multiprocessing.Pool(processes=8)
-    pool.map(edit_video, video_file_names)
-    pool.close()
-    pool.join()
+    for file_name in video_file_names:
+        edit_video(file_name)

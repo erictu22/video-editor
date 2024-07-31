@@ -11,18 +11,16 @@ def download_videos(videos, path="videos/ | {channel} (streamed on {date}).{form
     for video in videos:
         try:
             print(f'Downloading "{str(video["title"])}"')
-            block_print()
             download_video(video['id'],path)
-            enable_print()
-        except:
+        except(Exception) as e:
             enable_print()
             print('Failed to download ' + str(video['title']))
+            print(e)
 
 
 def download_video(video_id, path):
     download_args = DotDict(
         {
-            "videos": [str(video_id)],
             "format": "mp4",
             "keep": False,
             "quality": "source",
@@ -34,4 +32,4 @@ def download_video(video_id, path):
             "output": path,
         }
     )
-    download(download_args)
+    download.download([str(video_id)], download_args)

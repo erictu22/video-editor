@@ -32,8 +32,8 @@ def get_cuts(file_path, intervals = 30, start_grace = 5, end_grace = 5):
     cuts = []
     start_time = -1
     stop_time = -1
-    start_offset = 2 * intervals
-    end_offset = 4 * intervals
+    start_offset = 6 * intervals
+    end_offset = 5 * intervals
     for intv in range(0, len(is_frame_match)):
         is_ingame = all(is_frame_match[intv: intv + start_grace])
         is_game_over = all(
